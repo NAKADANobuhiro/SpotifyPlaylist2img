@@ -1,14 +1,16 @@
 # Playlist2img
 
-Spotify のプレイリスト URL からアルバムカバー画像をコラージュした PNG を生成するスクリプトです。
-同じアルバムの曲が複数ある場合はカバーを 1 枚に絞り、左上から順に 3×3 で並べます。
+A Python script that generates a collage PNG from album cover images in a Spotify playlist.
+When multiple tracks share the same album, only one cover is used. Images are arranged from the top-left in a grid layout.
 
-## 出力イメージ
+[日本語版 README はこちら](README.ja.md)
+
+## Output Layout
 
 ```
-_1.png（4 枚以下 → 2×2、5 枚以上 → 3×3）
+_1.png (2×2 for ≤4 covers, 3×3 for ≥5 covers)
 
-【4 枚以下の場合】        【5 枚以上の場合】
+[≤4 covers]              [≥5 covers]
 ┌──────┬──────┐          ┌──────┬──────┬──────┐
 │  1   │  2   │          │  1   │  2   │  3   │
 ├──────┼──────┤          ├──────┼──────┼──────┤
@@ -17,39 +19,39 @@ _1.png（4 枚以下 → 2×2、5 枚以上 → 3×3）
                          │  7   │  8   │  9   │
                          └──────┴──────┴──────┘
 
-_2.png（10 枚以上のとき）
-  ・2 枚目が 4 枚以下 → 2×2 グリッド
-  ・2 枚目が 5 枚以上 → 3×3 グリッド
+_2.png (generated when there are 10+ unique covers)
+  · ≤4 remaining → 2×2 grid
+  · ≥5 remaining → 3×3 grid
 ```
 
-## セットアップ
+## Setup
 
-### 1. ライブラリのインストール
+### 1. Install dependencies
 
 ```
 pip install spotipy Pillow requests
 ```
 
-### 2. Spotify API アプリの作成
+### 2. Create a Spotify API app
 
-1. [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) でアプリを作成
-2. 「Redirect URIs」に以下を登録して保存:
+1. Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) and create an app
+2. Under **Redirect URIs**, add the following and save:
    ```
    http://127.0.0.1:8888/callback
    ```
-   > ⚠️ `http://localhost:8888/callback` は登録できないため必ず `127.0.0.1` を使うこと
+   > ⚠️ `http://localhost:8888/callback` does NOT work — always use `127.0.0.1`
 
-3. **Client ID** と **Client Secret** を確認
+3. Note your **Client ID** and **Client Secret**
 
-### 3. 環境変数の設定
+### 3. Set environment variables
 
-**Windows（コマンドプロンプト）:**
+**Windows (Command Prompt):**
 ```
 set SPOTIFY_CLIENT_ID=your_client_id
 set SPOTIFY_CLIENT_SECRET=your_client_secret
 ```
 
-**Windows（PowerShell）:**
+**Windows (PowerShell):**
 ```
 $env:SPOTIFY_CLIENT_ID="your_client_id"
 $env:SPOTIFY_CLIENT_SECRET="your_client_secret"
@@ -61,42 +63,42 @@ export SPOTIFY_CLIENT_ID=your_client_id
 export SPOTIFY_CLIENT_SECRET=your_client_secret
 ```
 
-## 使い方
+## Usage
 
 ```
 python Playlist2img.py <playlist_url> [output_prefix]
 ```
 
-| 引数 | 説明 |
-|------|------|
-| `playlist_url` | Spotify プレイリストの URL（必須） |
-| `output_prefix` | 出力ファイル名のプレフィックス（省略時はプレイリスト名を自動使用） |
+| Argument | Description |
+|----------|-------------|
+| `playlist_url` | Spotify playlist URL (required) |
+| `output_prefix` | Output filename prefix (defaults to the playlist name) |
 
-### 実行例
+### Examples
 
 ```
-# ファイル名自動（プレイリスト名_1.png, プレイリスト名_2.png）
+# Auto filename (PlaylistName_1.png, PlaylistName_2.png)
 python Playlist2img.py https://open.spotify.com/playlist/6qPcuHG2Z6pFTWZWCu8Mbf?si=xxx
 
-# ファイル名指定（maburon_1.png, maburon_2.png）
+# Custom prefix (maburon_1.png, maburon_2.png)
 python Playlist2img.py https://open.spotify.com/playlist/6qPcuHG2Z6pFTWZWCu8Mbf?si=xxx maburon
 ```
 
-### 出力ファイル
+### Output files
 
-| ファイル | 条件 | サイズ |
-|----------|------|--------|
-| `{prefix}_1.png` | 常に生成 | 600×600px（2×2、4枚以下）または 900×900px（3×3、5枚以上）|
-| `{prefix}_2.png` | 10 枚以上のとき生成 | 600×600px（2×2）or 900×Npx（3×3）|
+| File | Generated when | Size |
+|------|---------------|------|
+| `{prefix}_1.png` | Always | 600×600px (2×2, ≤4 covers) or 900×900px (3×3, ≥5 covers) |
+| `{prefix}_2.png` | 10+ unique covers | 600×600px (2×2) or 900×Npx (3×3) |
 
-### 初回実行時
+### First run
 
-ブラウザが開き Spotify のログインと権限承認が求められます。
-承認後はトークンが `.cache` に保存され、2 回目以降はブラウザ不要です。
+A browser window will open for Spotify login and permission approval.
+After authorization, the token is cached in `.cache` — subsequent runs will not require browser sign-in.
 
-## 動作環境
+## Requirements
 
-- Python 3.10 以上
+- Python 3.10+
 - spotipy 2.x
-- Pillow 9.x 以上
+- Pillow 9.x+
 - requests 2.x
