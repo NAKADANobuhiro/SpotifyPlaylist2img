@@ -5,28 +5,41 @@ When multiple tracks share the same album, only one cover is used. Images are ar
 
 [日本語版 README はこちら](README.ja.md)
 
-## Output Layout
+## Layout Rules
 
-```
-_1.png (2×2 for ≤4 covers, 3×3 for ≥5 covers)
+Up to 9 images per page. The number of columns is determined by the image count on each page.
 
-[≤4 covers]              [≥5 covers]
-┌──────┬──────┐          ┌──────┬──────┬──────┐
-│  1   │  2   │          │  1   │  2   │  3   │
-├──────┼──────┤          ├──────┼──────┼──────┤
-│  3   │  4   │          │  4   │  5   │  6   │
-└──────┴──────┘          ├──────┼──────┼──────┤
-                         │  7   │  8   │  9   │
-                         └──────┴──────┴──────┘
+| Images on page | Layout |
+|---------------|--------|
+| 1 | 1×1 |
+| 2–6 | 2 columns (rows auto) |
+| 7–9 | 3×3 |
 
-_2.png (generated when there are 10+ unique covers)
-  · ≤4 remaining → 2×2 grid
-  · ≥5 remaining → 3×3 grid
-```
+### Examples by total count
+
+| Total covers | Output files |
+|-------------|-------------|
+| 1 | `_1.png` (1×1) |
+| 4 | `_1.png` (2×2) |
+| 9 | `_1.png` (3×3) |
+| 10 | `_1.png` (3×3) + `_2.png` (1×1) |
+| 15 | `_1.png` (3×3) + `_2.png` (2 col × 3 rows) |
+| 18 | `_1.png` (3×3) + `_2.png` (3×3) |
+| 27 | `_1.png` + `_2.png` + `_3.png` (3×3 each) |
+| 36 | `_1.png`–`_4.png` (3×3 each) |
 
 ## Setup
 
-### 1. Install dependencies
+### 1. Clone and create credentials file
+
+```
+cp spotify_credentials.bat.example spotify_credentials.bat
+```
+
+Edit `spotify_credentials.bat` and fill in your credentials (see step 2).
+This file is listed in `.gitignore` and will never be committed.
+
+### 2. Install dependencies
 
 ```
 pip install spotipy Pillow requests
@@ -86,10 +99,7 @@ python Playlist2img.py https://open.spotify.com/playlist/6qPcuHG2Z6pFTWZWCu8Mbf?
 
 ### Output files
 
-| File | Generated when | Size |
-|------|---------------|------|
-| `{prefix}_1.png` | Always | 600×600px (2×2, ≤4 covers) or 900×900px (3×3, ≥5 covers) |
-| `{prefix}_2.png` | 10+ unique covers | 600×600px (2×2) or 900×Npx (3×3) |
+One file is generated per 9 images. With ≤9 covers only `_1.png` is created; 10–18 covers produce `_1.png` + `_2.png`; and so on.
 
 ### First run
 

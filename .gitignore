@@ -3,3 +3,5 @@
 /CLAUDE.md
 /Runbook.md
 /spec.md
+__pycache__/
+spotify_credentials.bat

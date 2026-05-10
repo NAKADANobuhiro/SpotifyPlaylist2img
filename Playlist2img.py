@@ -106,6 +106,20 @@ def download_image(url: str) -> Image.Image:
     return Image.open(BytesIO(resp.content)).convert("RGB")
 
 
+def grid_cols(n: int) -> int:
+    """ページ内の画像枚数からグリッドの列数を決定する。
+    1枚      → 1列 (1x1)
+    2〜6枚   → 2列 (2xN)
+    7〜9枚   → 3列 (3xN)
+    """
+    if n == 1:
+        return 1
+    elif n <= 6:
+        return 2
+    else:
+        return 3
+
+
 def make_collage(images: list[Image.Image], cols: int, thumb: int) -> Image.Image:
     """images リストを cols 列で並べたコラージュ画像を返す。"""
     rows = (len(images) + cols - 1) // cols
@@ -175,22 +189,17 @@ def main():
     total = len(images)
     print(f"{total} 枚ダウンロード完了。コラージュを作成中...")
 
-    # --- 1 枚目: 4 枚以下なら 2x2、それ以上は 3x3（最大 9 枚） ---
-    first = images[:9]
-    cols1 = 2 if len(images) <= 4 else 3
-    collage1 = make_collage(first, cols=cols1, thumb=THUMB_SIZE)
-    out1 = f"{output_prefix}_1.png"
-    collage1.save(out1, "PNG")
-    print(f"保存しました: {out1}  ({collage1.width}x{collage1.height}px, {len(first)} 枚, {cols1}x{(len(first)+cols1-1)//cols1} グリッド)")
+    # ページごとに最大 9 枚ずつ分割してコラージュを生成
+    PAGE_SIZE = 9
+    pages = [images[i:i + PAGE_SIZE] for i in range(0, total, PAGE_SIZE)]
 
-    # --- 2 枚目: 10 枚以上のとき ---
-    second = images[9:]
-    if second:
-        cols2 = 2 if len(second) <= 4 else 3
-        collage2 = make_collage(second, cols=cols2, thumb=THUMB_SIZE)
-        out2 = f"{output_prefix}_2.png"
-        collage2.save(out2, "PNG")
-        print(f"保存しました: {out2}  ({collage2.width}x{collage2.height}px, {len(second)} 枚, {cols2}x{(len(second)+cols2-1)//cols2} グリッド)")
+    for page_num, page in enumerate(pages, start=1):
+        cols = grid_cols(len(page))
+        rows = (len(page) + cols - 1) // cols
+        collage = make_collage(page, cols=cols, thumb=THUMB_SIZE)
+        out = f"{output_prefix}_{page_num}.png"
+        collage.save(out, "PNG")
+        print(f"保存しました: {out}  ({collage.width}x{collage.height}px, {len(page)} 枚, {cols}x{rows} グリッド)")
 
     print("\n完了！")
 
