@@ -5,3 +5,4 @@
 /spec.md
 __pycache__/
 spotify_credentials.bat
+.claude/*
