@@ -21,6 +21,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 try:
     from Playlist2img import (
         extract_playlist_id,
+        trim_filename,
         get_spotify_client,
         fetch_cover_urls,
         download_image,
@@ -154,11 +155,16 @@ class App(tk.Tk):
         sp = get_spotify_client()
 
         playlist_info = sp.playlist(playlist_id, fields="name")
-        playlist_name = playlist_info.get("name", playlist_id)
+        playlist_name = trim_filename(playlist_info.get("name", playlist_id))
+        if not playlist_name:
+            playlist_name = playlist_id
         self.log_write(f"プレイリスト名: {playlist_name}")
 
-        # 出力ファイル名のベース
+        # 出力ファイル名のベース（前後の空白・書式文字を切り詰める）
         safe_name = re.sub(r'[\\/:*?"<>|]', "_", playlist_name)
+        safe_name = trim_filename(safe_name)
+        if not safe_name:
+            safe_name = playlist_id
         prefix = os.path.join(outdir, safe_name) if outdir else safe_name
 
         self.log_write("カバー画像 URL を取得中（アルバム重複除外）…")
